@@ -34,36 +34,38 @@ except:
     print("Download Failed")
 
 cap = cv.VideoCapture('outputvid.mp4')
-width = cap.get(cv.CAP_PROP_FRAME_WIDTH)
-height = cap.get(cv.CAP_PROP_FRAME_HEIGHT)
-fps =  cap.get(cv.CAP_PROP_FPS)
+
 
 # 70 levels of gray
 ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
 
 while cap.isOpened():
     ret, frame = cap.read()
+    print(frame.shape)
 
+    height = frame.shape[0]
+    width =  frame.shape[1]
 
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         break
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #also the same as intensity
-    os.system('mode con: cols='+str(int(width))+"lines="+str(int(height)))
     asciiframe=""
-    for x in range(int(width)):
+    for x in range(width):
         asciiframe+= "\n"
-        for y in range(int(height)): 
+        for y in range(height):
             color = frame[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
+    os.system('cls')
+
     print(asciiframe)
 
 
 
     cv.imshow('frame', gray)
-    if cv.waitKey(25) == ord('q'):
+    if cv.waitKey(1) == ord('q'):
         break
  
 cap.release()

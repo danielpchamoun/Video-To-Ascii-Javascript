@@ -32,44 +32,36 @@ try:
     mp4.download(filename=outputfile)
 except:
     print("Download Failed")
-inputHeight = 100
-inputWidth = 100
+#inputHeight = 144
+#inputWidth = 256
 cap = cv.VideoCapture('outputvid.mp4')
-cap.set(3, inputWidth)
-cap.set(4, inputHeight)
+#cap.set(3, inputWidth)
+#cap.set(4, inputHeight)
 
 # 70 levels of gray
 ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
 
 
 
-ret, frame = cap.read()
-
-height = int(frame.shape[0])
-width = int(frame.shape[1])
-
-
-
-cv.resize(frame, (width,height), interpolation =cv.INTER_AREA)
-
-
-cmd = 'mode '+str(width)+','+ str(height)
-os.system(cmd)
+factorX = 0.1 #change to user inputs 
+factorY = 0.1 #change to user inputs 
 
 
 while cap.isOpened():
     ret, frame = cap.read()
-
+    resized = cv.resize(frame, None, fx=0.1, fy=0.1, interpolation=cv.INTER_CUBIC) 
+    height = int(resized.shape[0])
+    width = int(resized.shape[1])
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         break
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #also the same as intensity
+    gray = cv.cvtColor(resized, cv.COLOR_BGR2GRAY) #also the same as intensity
     asciiframe=""
     for y in range(height):
         asciiframe+= "\n"
         for x in range(width):
-            color = frame[y,x]
+            color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
     os.system('cls')
@@ -78,7 +70,7 @@ while cap.isOpened():
 
 
 
-    cv.imshow('frame', gray)
+    cv.imshow('resized', gray)
     if cv.waitKey(1) == ord('q'):
         break
  

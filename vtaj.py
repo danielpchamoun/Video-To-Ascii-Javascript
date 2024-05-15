@@ -32,19 +32,33 @@ try:
     mp4.download(filename=outputfile)
 except:
     print("Download Failed")
-
+inputHeight = 100
+inputWidth = 100
 cap = cv.VideoCapture('outputvid.mp4')
-
+cap.set(3, inputWidth)
+cap.set(4, inputHeight)
 
 # 70 levels of gray
 ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
 
+
+
+ret, frame = cap.read()
+
+height = int(frame.shape[0])
+width = int(frame.shape[1])
+
+
+
+cv.resize(frame, (width,height), interpolation =cv.INTER_AREA)
+
+
+cmd = 'mode '+str(width)+','+ str(height)
+os.system(cmd)
+
+
 while cap.isOpened():
     ret, frame = cap.read()
-    print(frame.shape)
-
-    height = frame.shape[0]
-    width =  frame.shape[1]
 
     # if frame is read correctly ret is True
     if not ret:
@@ -52,9 +66,9 @@ while cap.isOpened():
         break
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY) #also the same as intensity
     asciiframe=""
-    for x in range(width):
+    for y in range(height):
         asciiframe+= "\n"
-        for y in range(height):
+        for x in range(width):
             color = frame[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii

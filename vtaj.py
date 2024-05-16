@@ -10,6 +10,17 @@ import os, sys
 import cv2 as cv
 from PIL import Image
 from pytube import YouTube
+from tkinter import *
+from tkinter import ttk
+import array
+
+#do GUI stuff after color
+#root = Tk()
+#frm = ttk.Frame(root, padding=10)
+#frm.grid()
+#ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
+#ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
+#root.mainloop()
 
 if len(sys.argv) < 2:     
     print("Error. Wrong number of arguments.")
@@ -46,10 +57,17 @@ ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\
 factorX = 0.1 #change to user inputs 
 factorY = 0.1 #change to user inputs 
 
+jsoutput = open("animation.js","w") 
+jsoutput.write("asciiframes = [")
+jsoutput.close()
+
+count = 0
 
 while cap.isOpened():
-    ret, frame = cap.read()
-    resized = cv.resize(frame, None, fx=0.1, fy=0.1, interpolation=cv.INTER_CUBIC) 
+    ret, frame = cap.read() #gets next frame
+    if ret:
+        resized = cv.resize(frame, None, fx=0.05, fy=0.05, interpolation=cv.INTER_CUBIC)
+
     height = int(resized.shape[0])
     width = int(resized.shape[1])
     # if frame is read correctly ret is True
@@ -58,21 +76,48 @@ while cap.isOpened():
         break
     gray = cv.cvtColor(resized, cv.COLOR_BGR2GRAY) #also the same as intensity
     asciiframe=""
+    javascriptOutput = "\""
     for y in range(height):
-        asciiframe+= "\n"
+        javascriptOutput += "<div>"
         for x in range(width):
             color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
-    os.system('cls')
+            javascriptOutput += "<span style=\\\"color:rgb("+str(color[0])+","+str(color[1])+","+str(color[2])+")\\\">"+ascii+"</span>"
+        asciiframe+= "\n"
+        javascriptOutput+= "</div>"
+    if count == int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1:
+        javascriptOutput+="\"]\n"
+    else:
+        javascriptOutput+= "\","
+
+    
+    jsoutput = open("animation.js","a") 
+    jsoutput.write(javascriptOutput)
+    jsoutput.close()
 
     print(asciiframe)
+    print(count)
+    print(int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1)
+    print(int(cap.get(cv.CAP_PROP_FRAME_COUNT)))
 
-
-
+    count+=1
     cv.imshow('resized', gray)
     if cv.waitKey(1) == ord('q'):
         break
- 
+    os.system('cls')
+
+
+
+
+
+
+
+
+
+jsoutput = open("animation.js","a") 
+jsoutput.write("asciiFrameIndex = 0\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1}, 10);\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];")
+jsoutput.close()
+
 cap.release()
 cv.destroyAllWindows()

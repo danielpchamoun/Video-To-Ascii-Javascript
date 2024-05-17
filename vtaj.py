@@ -83,7 +83,7 @@ while cap.isOpened():
             color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
-            javascriptOutput += "<span style=\\\"color:rgb("+str(color[0])+","+str(color[1])+","+str(color[2])+")\\\">"+ascii+"</span>"
+            javascriptOutput += "<span style=\\\"color:rgb("+str(color[2])+","+str(color[1])+","+str(color[0])+")\\\">"+ascii+"</span>"
         asciiframe+= "\n"
         javascriptOutput+= "</div>"
     if count == int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1:
@@ -94,6 +94,7 @@ while cap.isOpened():
     
     jsoutput = open("animation.js","a") 
     jsoutput.write(javascriptOutput)
+
     jsoutput.close()
 
     print(asciiframe)
@@ -116,7 +117,9 @@ while cap.isOpened():
 
 
 jsoutput = open("animation.js","a") 
-jsoutput.write("asciiFrameIndex = 0\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1}, 10);\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];")
+jsoutput.write("asciiFrameIndex = 0\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
+jsoutput.write("document.getElementById(\"asciianimation\").style.fontFamily = \"Courier New, monospace\";}, 10)") 
+
 jsoutput.close()
 
 cap.release()

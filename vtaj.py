@@ -54,8 +54,8 @@ ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\
 
 
 
-factorX = 0.1 #change to user inputs 
-factorY = 0.1 #change to user inputs 
+factorX = 0.2 #change to user inputs 
+factorY = 0.2 #change to user inputs 
 
 jsoutput = open("animation.js","w") 
 jsoutput.write("asciiframes = [")
@@ -66,7 +66,7 @@ count = 0
 while cap.isOpened():
     ret, frame = cap.read() #gets next frame
     if ret:
-        resized = cv.resize(frame, None, fx=0.05, fy=0.05, interpolation=cv.INTER_CUBIC)
+        resized = cv.resize(frame, None, fx=factorX, fy=factorY, interpolation=cv.INTER_CUBIC)
 
     height = int(resized.shape[0])
     width = int(resized.shape[1])

@@ -56,8 +56,8 @@ ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\
 
 
 
-factorX = 0.1 #change to user inputs 
-factorY = 0.1 #change to user inputs 
+factorX = 0.08 #change to user inputs 
+factorY = 0.08 #change to user inputs 
 
 jsoutput = open("animation.js","w") 
 jsoutput.write("asciiframes = [")
@@ -85,7 +85,7 @@ while cap.isOpened():
             color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
-            if ascii == "\"":
+            if ascii == "\"" or ascii == "\'":
                 ascii = "\\"+ascii
             javascriptOutput += "<span style=\\\"color:rgb("+str(color[2])+","+str(color[1])+","+str(color[0])+")\\\">"+ascii+"</span>"
         asciiframe+= "\n"

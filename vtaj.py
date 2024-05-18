@@ -22,30 +22,32 @@ import array
 #ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
 #root.mainloop()
 
-if len(sys.argv) < 2:     
+if len(sys.argv) != 2:     
     print("Error. Wrong number of arguments.")
     sys.exit(1)
 
-outputfile = "video.mp4"
+inputfile = "video.mp4"
 
 youtubeLink = sys.argv[1] #might need to swap these two arguments, user should be able to simply add either youtube video or direct mp4 to convert to ascii
 
-if len(sys.argv) == 3:
-    outputfile = sys.argv[2]
-print("Downloading video from: "+youtubeLink)
 
-yt = YouTube(youtubeLink)
+
 
 #get highest quality video from stream list
-mp4 = yt.streams.get_highest_resolution()
 
-try:
-    mp4.download(filename=outputfile)
-except:
-    print("Download Failed")
+inputfile = sys.argv[1]
+
+if inputfile.startswith("https://"): 
+    try:
+        print("Downloading video from: "+youtubeLink)
+        yt = YouTube(youtubeLink)
+        mp4 = yt.streams.get_highest_resolution()
+        mp4.download(filename=inputfile)
+    except:
+        print("Download Failed")
 #inputHeight = 144
 #inputWidth = 256
-cap = cv.VideoCapture('outputvid.mp4')
+cap = cv.VideoCapture(inputfile)
 #cap.set(3, inputWidth)
 #cap.set(4, inputHeight)
 
@@ -54,8 +56,8 @@ ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\
 
 
 
-factorX = 0.2 #change to user inputs 
-factorY = 0.2 #change to user inputs 
+factorX = 0.1 #change to user inputs 
+factorY = 0.1 #change to user inputs 
 
 jsoutput = open("animation.js","w") 
 jsoutput.write("asciiframes = [")
@@ -83,11 +85,13 @@ while cap.isOpened():
             color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
             asciiframe += ascii
+            if ascii == "\"":
+                ascii = "\\"+ascii
             javascriptOutput += "<span style=\\\"color:rgb("+str(color[2])+","+str(color[1])+","+str(color[0])+")\\\">"+ascii+"</span>"
         asciiframe+= "\n"
         javascriptOutput+= "</div>"
     if count == int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1:
-        javascriptOutput+="\"]\n"
+        javascriptOutput+="\"];\n"
     else:
         javascriptOutput+= "\","
 
@@ -99,7 +103,6 @@ while cap.isOpened():
 
     print(asciiframe)
     print(count)
-    print(int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1)
     print(int(cap.get(cv.CAP_PROP_FRAME_COUNT)))
 
     count+=1
@@ -117,7 +120,7 @@ while cap.isOpened():
 
 
 jsoutput = open("animation.js","a") 
-jsoutput.write("asciiFrameIndex = 0\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
+jsoutput.write("asciiFrameIndex = 0;\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
 jsoutput.write("document.getElementById(\"asciianimation\").style.fontFamily = \"Courier New, monospace\";}, 10)") 
 
 jsoutput.close()

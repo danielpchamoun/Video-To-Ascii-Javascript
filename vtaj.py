@@ -26,7 +26,6 @@ if len(sys.argv) != 2:
     print("Error. Wrong number of arguments.")
     sys.exit(1)
 
-inputfile = "video.mp4"
 
 youtubeLink = sys.argv[1] #might need to swap these two arguments, user should be able to simply add either youtube video or direct mp4 to convert to ascii
 
@@ -38,18 +37,13 @@ youtubeLink = sys.argv[1] #might need to swap these two arguments, user should b
 inputfile = sys.argv[1]
 
 if inputfile.startswith("https://"): 
-    try:
-        print("Downloading video from: "+youtubeLink)
-        yt = YouTube(youtubeLink)
-        mp4 = yt.streams.get_highest_resolution()
-        mp4.download(filename=inputfile)
-    except:
-        print("Download Failed")
-#inputHeight = 144
-#inputWidth = 256
-cap = cv.VideoCapture(inputfile)
-#cap.set(3, inputWidth)
-#cap.set(4, inputHeight)
+    print("Downloading video from: "+youtubeLink)
+    yt = YouTube(youtubeLink)
+    mp4 = yt.streams.get_highest_resolution()
+    mp4.download(filename="video.mp4")
+
+cap = cv.VideoCapture("video.mp4")
+
 
 # 70 levels of gray
 ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
@@ -121,7 +115,8 @@ while cap.isOpened():
 
 jsoutput = open("animation.js","a") 
 jsoutput.write("asciiFrameIndex = 0;\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
-jsoutput.write("document.getElementById(\"asciianimation\").style.fontFamily = \"Courier New, monospace\";}, 10)") 
+jsoutput.write("document.getElementById(\"asciianimation\").style.fontFamily = \"Courier New, monospace\";\n if(asciiFrameIndex == "+str(cap.get(cv.CAP_PROP_FRAME_COUNT) - 1)+"){asciiFrameIndex = 0;}\n}, 10)") 
+
 
 jsoutput.close()
 

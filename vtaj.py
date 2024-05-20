@@ -13,6 +13,7 @@ from pytube import YouTube
 from tkinter import *
 from tkinter import ttk
 import array
+import numpy
 
 #do GUI stuff after color
 #root = Tk()
@@ -58,7 +59,8 @@ jsoutput.write("asciiframes = [")
 jsoutput.close()
 
 count = 0
-
+asciiValues = []
+colorValues =  []
 while cap.isOpened():
     ret, frame = cap.read() #gets next frame
     if ret:
@@ -71,33 +73,24 @@ while cap.isOpened():
         print("Can't receive frame (stream end?). Exiting ...")
         break
     gray = cv.cvtColor(resized, cv.COLOR_BGR2GRAY) #also the same as intensity
-    asciiframe=""
-    javascriptOutput = "\""
+    asciiframe=""    
     for y in range(height):
-        javascriptOutput += "<div>"
+        asciiValues.append([])
+        colorValues.append([])
         for x in range(width):
             color = resized[y,x]
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
+            asciiValues[y].append(ascii)
+            colorValues[y].append(color)
             asciiframe += ascii
-            if ascii == "\"" or ascii == "\'":
-                ascii = "\\"+ascii
-            javascriptOutput += "<span style=\\\"color:rgb("+str(color[2])+","+str(color[1])+","+str(color[0])+")\\\">"+ascii+"</span>"
-        asciiframe+= "\n"
-        javascriptOutput+= "</div>"
-    if count == int(cap.get(cv.CAP_PROP_FRAME_COUNT)) - 1:
-        javascriptOutput+="\"];\n"
-    else:
-        javascriptOutput+= "\","
+        asciiframe+= "\n" #for seeing it in the console
 
     
     jsoutput = open("animation.js","a") 
-    jsoutput.write(javascriptOutput)
 
     jsoutput.close()
 
-    print(asciiframe)
-    print(count)
-    print(int(cap.get(cv.CAP_PROP_FRAME_COUNT)))
+    print(str(count) + "/" +str(int(cap.get(cv.CAP_PROP_FRAME_COUNT))))
 
     count+=1
     cv.imshow('resized', gray)
@@ -106,18 +99,13 @@ while cap.isOpened():
     os.system('cls')
 
 
+for i in range len(colorValues):
+    for j in range(len(colorValues[i])):
 
 
-
-
-
-
-
-jsoutput = open("animation.js","a") 
-jsoutput.write("asciiFrameIndex = 0;\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
-jsoutput.write("document.getElementById(\"asciianimation\").style.fontFamily = \"Courier New, monospace\";\n if(asciiFrameIndex == "+str(cap.get(cv.CAP_PROP_FRAME_COUNT) - 1)+"){asciiFrameIndex = 0;}\n}, 10)") 
-
-
+jsoutput = open("animation.js","a")
+jsoutput.write("const canvas = document.getElementById("asciianimation");\nconst ctx = canvas.getContext(\"2d\");\nctx.font = \"50px Courier New, monospace\";\nctx.fillStyle = \"rgb("str(colorValues[i][j][0])","+str(colorValues[i][j][1])+","+str(colorValues[i][j][2])+")\";\nctx.fillText(asciiValues[i][j],10,80);\nasciiFrameIndex = 0;\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
+jsoutput.write("")
 jsoutput.close()
 
 cap.release()

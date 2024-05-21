@@ -54,13 +54,16 @@ ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\
 factorX = 0.08 #change to user inputs 
 factorY = 0.08 #change to user inputs 
 
-jsoutput = open("animation.js","w") 
-jsoutput.write("asciiframes = [")
+jsoutput = open("animation.js","w")  #clearing javascript file
+jsoutput.write("")
 jsoutput.close()
 
 count = 0
-asciiValues = []
-colorValues =  []
+colorFrames =  []
+asciiFrames = []
+
+windowW = 0
+windowH = 0
 while cap.isOpened():
     ret, frame = cap.read() #gets next frame
     if ret:
@@ -68,27 +71,29 @@ while cap.isOpened():
 
     height = int(resized.shape[0])
     width = int(resized.shape[1])
+    windowW = width
+    windowH = height
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
         break
     gray = cv.cvtColor(resized, cv.COLOR_BGR2GRAY) #also the same as intensity
-    asciiframe=""    
+    colorValues = []
+    asciiValues = []
     for y in range(height):
-        asciiValues.append([])
-        colorValues.append([])
+        asciiRow = []
+        colorRow = []
         for x in range(width):
-            color = resized[y,x]
+            color = resized[y,x].tolist()
             ascii = ascii_ramp[int((gray[y,x]*69)/255)]
-            asciiValues[y].append(ascii)
-            colorValues[y].append(color)
-            asciiframe += ascii
-        asciiframe+= "\n" #for seeing it in the console
-
+            colorRow.append(color)
+            asciiRow.append(ascii)
+        colorValues.append(colorRow)
+        asciiValues.append(asciiRow)
+    asciiFrames.append(asciiValues)
+    colorFrames.append(colorValues)
     
-    jsoutput = open("animation.js","a") 
 
-    jsoutput.close()
 
     print(str(count) + "/" +str(int(cap.get(cv.CAP_PROP_FRAME_COUNT))))
 
@@ -97,15 +102,30 @@ while cap.isOpened():
     if cv.waitKey(1) == ord('q'):
         break
     os.system('cls')
-
-
-for i in range len(colorValues):
-    for j in range(len(colorValues[i])):
-
-
+#print(asciiValues)
+#print(colorValues)
 jsoutput = open("animation.js","a")
-jsoutput.write("const canvas = document.getElementById("asciianimation");\nconst ctx = canvas.getContext(\"2d\");\nctx.font = \"50px Courier New, monospace\";\nctx.fillStyle = \"rgb("str(colorValues[i][j][0])","+str(colorValues[i][j][1])+","+str(colorValues[i][j][2])+")\";\nctx.fillText(asciiValues[i][j],10,80);\nasciiFrameIndex = 0;\nvar asciiInterval = window.setInterval(function(){asciiFrameIndex += 1;\ndocument.getElementById(\"asciianimation\").innerHTML = asciiframes[asciiFrameIndex];\n")
-jsoutput.write("")
+
+jsoutput.write("colorValues ="+str(colorFrames)+";\n")
+jsoutput.write("asciiValues ="+str(asciiFrames)+";\n")
+jsoutput.write("const canvas = document.getElementById(\"asciianimation\");\n")
+jsoutput.write("const ctx = canvas.getContext(\"2d\");\n")
+jsoutput.write("var frameIndex = 0;\n")
+jsoutput.write("var interval = window.setInterval(function(){\n")
+jsoutput.write("frameIndex += 1;\n")
+jsoutput.write("ctx.clearRect(0, 0, canvas.width, canvas.height);\n")
+jsoutput.write("for(let i = 0; i < "+str(windowH)+"; i++){\n")
+jsoutput.write("    for(let j = 0; j < "+str(windowW)+"; j++){\n")
+jsoutput.write("        ctx.font = \"20px Courier New, monospace\";\n")
+jsoutput.write("        ctx.fillStyle = \"rgb(\"+String(colorValues[frameIndex][i][j][2])+\",\"+String(colorValues[frameIndex][i][j][1])+\",\"+String(colorValues[frameIndex][i][j][0])+\")\";\n")
+jsoutput.write("        ctx.fillText(asciiValues[frameIndex][i][j],j*16,i*16); // might need to change starting location here\n") 
+jsoutput.write("    }\n")
+jsoutput.write("}\n")
+
+jsoutput.write("if(frameIndex == "+str(int(cap.get(cv.CAP_PROP_FRAME_COUNT)-1))+"){\n")
+jsoutput.write("    frameIndex = 0;\n")
+jsoutput.write("}\n")
+jsoutput.write("}, 2);\n")
 jsoutput.close()
 
 cap.release()

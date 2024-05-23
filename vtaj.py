@@ -31,9 +31,7 @@ def choose_color():
 
 userVideoInput = ""
 def choose_file():
-    file_path = tkinter.filedialog.askopenfilename(filetypes=(("Video files", "*.mp4;"),("All files", "*.*") ))
-    print("Selected file path:", file_path)
-    
+    file_path = tkinter.filedialog.askopenfilename(filetypes=(("Video files", "*.mp4;"),("All files", "*.*") ))    
     selectedFileEntry.delete(0, END)
     selectedFileEntry.insert(0, file_path)
     selectedFileEntry.config(fg='black')
@@ -62,6 +60,17 @@ def startEntryUnfocus(event):
     if startEntry.get() == '':
         startEntry.insert(0, '00:00:00')
         startEntry.config(fg='grey')
+
+def endEntryFocus(event):
+    if endEntry.get() == '00:00:00':
+        endEntry.delete(0, END)
+        endEntry.insert(0, '')
+        endEntry.config(fg='black')
+
+def endEntryUnfocus(event):
+    if endEntry.get() == '':
+        endEntry.insert(0, '00:00:00')
+        endEntry.config(fg='grey')
 
 
 
@@ -112,7 +121,7 @@ def main():
     else:
         startSeconds = 0
 
-    if endTime:
+    if endTime != "00:00:00": #user has changed the default, requesting a cut
         endSeconds = int(endTime[0:2]) * 3600 + int(endTime[3:5]) * 60 + int(endTime[6:8])
     else:
         endSeconds = int(cap.get(cv.CAP_PROP_FRAME_COUNT) / fps)
@@ -199,14 +208,16 @@ startEntry = Entry(frm, width=10,fg='grey')
 startEntry.insert(0, '00:00:00')
 startEntry.bind('<FocusIn>', startEntryFocus)
 startEntry.bind('<FocusOut>', startEntryUnfocus)
-
 startEntry.grid(column=1, row=3,sticky="w")
 
 
 startLabel = Label(frm, text="Start")
 startLabel.grid(column=1, row=4 ,sticky="w")
 
-endEntry = ttk.Entry(frm, width=10)
+endEntry = Entry(frm, width=10,fg='grey')
+endEntry.insert(0, '00:00:00')
+endEntry.bind('<FocusIn>', endEntryFocus)
+endEntry.bind('<FocusOut>', endEntryUnfocus)
 endEntry.grid(column=2, row=3, sticky="w")
 
 endLabel = Label(frm, text="End")

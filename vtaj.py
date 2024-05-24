@@ -15,18 +15,18 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 import array
-import numpy
+import numpy as np
 
 
 # Function that will be invoked when the
 # button will be clicked in the main window
-userCustomColor="red"
+userCustomColor= (255,0,0)
 def choose_color():
     global userCustomColor
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title ="Choose color") 
-    userCustomColor = color_code[1] #do more splitting here
-    selectedColorButton.config(bg=userCustomColor, text="Selected Color: " + userCustomColor)
+    userCustomColor = color_code[0] #do more splitting here
+    selectedColorButton.config(bg=color_code[1], text="Selected Color: " + color_code[1])
     return
 
 userVideoInput = ""
@@ -35,9 +35,19 @@ def choose_file():
     selectedFileEntry.delete(0, END)
     selectedFileEntry.insert(0, file_path)
     selectedFileEntry.config(fg='black')
-
     return
 
+
+def applyColorFilter(frame, color):
+    b, g, r = cv.split(frame)
+    rFilter, gFilter, bFilter = color
+    r = r * (rFilter / 255)
+    g = g * (gFilter / 255)
+    b = b * (bFilter / 255)
+    
+    frame = cv.merge((b.astype(np.uint8), g.astype(np.uint8), r.astype(np.uint8)))
+
+    return frame
 
 def selectedFileEntryFocus(event):
     if selectedFileEntry.get() == 'Enter file path or paste YouTube link here':
@@ -148,6 +158,8 @@ def main():
             break
         
         if count / fps >= startSeconds:
+            if colorFilterEnabled.get():
+                frame = applyColorFilter(frame, userCustomColor)
             resized = cv.resize(frame, None, fx=factorX, fy=factorY, interpolation=cv.INTER_CUBIC)
             height = int(resized.shape[0])
             width = int(resized.shape[1])
@@ -174,7 +186,7 @@ def main():
             print("Converting:" + str(min(100, round((count / (fps * endSeconds)) * 100, 2)))+"%")
 
         count+=1
-        cv.imshow('resized', gray)
+        cv.imshow('resized', frame) #preview
         if cv.waitKey(1) == ord('q'):
             break
 

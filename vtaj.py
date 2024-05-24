@@ -73,6 +73,17 @@ def endEntryUnfocus(event):
         endEntry.config(fg='grey')
 
 
+def sizeEntryFocus(event):
+    if sizeEntry.get() == '0.08':
+        sizeEntry.delete(0, END)
+        sizeEntry.insert(0, '')
+        sizeEntry.config(fg='black')
+
+def sizeEntryUnfocus(event):
+    if sizeEntry.get() == '':
+        sizeEntry.insert(0, '0.08')
+        sizeEntry.config(fg='grey')
+
 
 def main():
 
@@ -101,8 +112,12 @@ def main():
 
     # 70 levels of gray
     ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
-    factorX = 0.08 #change to user inputs 
-    factorY = 0.08 #change to user inputs 
+    factorX = float(sizeEntry.get()) #change to user inputs 
+    factorY = float(sizeEntry.get()) #change to user inputs 
+
+    print(factorX)
+    print(factorY)
+
     jsoutput = open("animation.js","w")  #clearing javascript file
     jsoutput.write("")
     jsoutput.close()
@@ -194,7 +209,7 @@ def main():
 #do GUI stuff after color
 root = Tk()
 root.title("Javascript Ascii Animation Converter")
-root.geometry("510x100")
+root.geometry("500x120")
 root.resizable(False, False)
 frm = ttk.Frame(root, padding=2.5)
 frm.grid()
@@ -224,14 +239,28 @@ endLabel = Label(frm, text="End")
 endLabel.grid(column=2, row=4, sticky="w")
 
 selectedColorButton = Button(frm, text="Selected Color: #ffffff", command=choose_color, bg = "#ffffff")
-selectedColorButton.grid(column=0, row=3)
+selectedColorButton.grid(column=0, row=4)
+
+
+
+
+sizeEntry = Entry(frm, width=10,fg='grey')
+sizeEntry.insert(0, '0.08')
+sizeEntry.bind('<FocusIn>', sizeEntryFocus)
+sizeEntry.bind('<FocusOut>', sizeEntryUnfocus)
+sizeEntry.grid(column=2, row=5,sticky="w")
+
+sizeLabel = Label(frm, text="Size Factor")
+sizeLabel.grid(column=2, row=6, sticky="w")
+
+
 
 
 #use colorFilterEnabled.get() to see if checked or unchecked
 colorFilterEnabled = BooleanVar()
 autoDownloadCheckbox = Checkbutton(frm, text="Enable Color Filter", variable=colorFilterEnabled)
-autoDownloadCheckbox.grid(column=0, row=4)
-ttk.Button(frm, text="Convert Video", command=main).grid(column=2, row=1,sticky="w")
+autoDownloadCheckbox.grid(column=0, row=3)
+ttk.Button(frm, text="Convert", command=main).grid(column=2, row=1,sticky="w")
 
 
 selectedFileEntry = Entry(frm, width=55, fg='grey')

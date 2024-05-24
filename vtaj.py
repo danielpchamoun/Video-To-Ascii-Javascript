@@ -9,28 +9,32 @@
 import os, sys
 import cv2 as cv
 import tkinter.filedialog
-from PIL import Image
+from PIL import Image as PILimg
+from PIL import ImageDraw
+
 from pytube import YouTube
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 import array
 import numpy as np
+import imageio
+
 
 
 # Function that will be invoked when the
 # button will be clicked in the main window
-userCustomColor= (255,0,0)
-def choose_color():
+userCustomColor= (0,0,0)
+def chooseColor():
     global userCustomColor
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title ="Choose color") 
     userCustomColor = color_code[0] #do more splitting here
-    selectedColorButton.config(bg=color_code[1], text="Selected Color: " + color_code[1])
+    selectedColorButton.config(bg=color_code[1], text="  "+color_code[1]+"  ")
     return
 
 userVideoInput = ""
-def choose_file():
+def chooseFile():
     file_path = tkinter.filedialog.askopenfilename(filetypes=(("Video files", "*.mp4;"),("All files", "*.*") ))    
     selectedFileEntry.delete(0, END)
     selectedFileEntry.insert(0, file_path)
@@ -48,6 +52,16 @@ def applyColorFilter(frame, color):
     frame = cv.merge((b.astype(np.uint8), g.astype(np.uint8), r.astype(np.uint8)))
 
     return frame
+
+def ascii_to_colored_image(ascii_frame, color_frame):
+    height, width = len(ascii_frame), len(ascii_frame[0])
+    colored_frame = np.zeros((height, width, 3), dtype=np.uint8)
+    for i in range(height):
+        for j in range(width):
+            colored_frame[i][j] = color_frame[i][j]
+    return colored_frame
+
+
 
 def selectedFileEntryFocus(event):
     if selectedFileEntry.get() == 'Enter file path or paste YouTube link here':
@@ -214,6 +228,30 @@ def main():
     jsoutput.close()
     cap.release()
     cv.destroyAllWindows()
+    
+    
+    if gifEnabled.get():
+
+        # Use Ascii data to output in .gif format
+        gif = imageio.get_writer("output.gif", fps=fps)
+
+        for frame_index in range(len(asciiFrames)):
+
+            canvas_width = len(asciiFrames[0][0]) * 10  # Width of ASCII frame characters
+            canvas_height = len(asciiFrames[0]) * 10   # Height of ASCII frame characters
+            gifCanvas = PILimg.new('RGB', (canvas_width, canvas_height), color='black')
+            gifAsciiColor = ImageDraw.Draw(gifCanvas)
+            for i in range(len(asciiFrames[frame_index])):
+                for j in range(len(asciiFrames[frame_index][i])):
+                    color = tuple((colorFrames[frame_index][i][j][2], colorFrames[frame_index][i][j][1], colorFrames[frame_index][i][j][0]))
+                    gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color) #adjust this based on gif output
+
+            # Append frame to GIF
+            gif.append_data(np.array(gifCanvas))
+            print("Writing frame:", frame_index)
+
+        gif.close()
+
     sys.exit(1)
 
 
@@ -221,13 +259,13 @@ def main():
 #do GUI stuff after color
 root = Tk()
 root.title("Javascript Ascii Animation Converter")
-root.geometry("500x120")
+root.geometry("600x200")
 root.resizable(False, False)
 frm = ttk.Frame(root, padding=2.5)
 frm.grid()
 
 
-ttk.Button(frm, text="Browse", command=choose_file).grid(column=1, row=1, sticky="w")
+ttk.Button(frm, text="Browse", command=chooseFile).grid(column=1, row=1, sticky="w")
 selectedFileEntry = ttk.Entry(frm, width=55)
 selectedFileEntry.grid(column=0, row=1)
 
@@ -250,8 +288,8 @@ endEntry.grid(column=2, row=3, sticky="w")
 endLabel = Label(frm, text="End")
 endLabel.grid(column=2, row=4, sticky="w")
 
-selectedColorButton = Button(frm, text="Selected Color: #ffffff", command=choose_color, bg = "#ffffff")
-selectedColorButton.grid(column=0, row=4)
+selectedColorButton = Button(frm, text="  #ffffff  ", command=chooseColor, bg = "#ffffff")
+selectedColorButton.grid(column=1, row=8)
 
 
 
@@ -266,13 +304,23 @@ sizeLabel = Label(frm, text="Size Factor")
 sizeLabel.grid(column=2, row=6, sticky="w")
 
 
-
+fontLabel = Label(frm, text="Custom Font")
+fontLabel.grid(column=1, row=6, sticky="w")
 
 #use colorFilterEnabled.get() to see if checked or unchecked
 colorFilterEnabled = BooleanVar()
-autoDownloadCheckbox = Checkbutton(frm, text="Enable Color Filter", variable=colorFilterEnabled)
-autoDownloadCheckbox.grid(column=0, row=3)
+colorFilterCheckbox = Checkbutton(frm, text="Color Filter", variable=colorFilterEnabled)
+colorFilterCheckbox.grid(column=1, row=7)
+
+gifEnabled = BooleanVar()
+gifCheckbox = Checkbutton(frm, text=".gif Output", variable=gifEnabled)
+gifCheckbox.grid(column=2, row=7)
+
 ttk.Button(frm, text="Convert", command=main).grid(column=2, row=1,sticky="w")
+
+
+
+
 
 
 selectedFileEntry = Entry(frm, width=55, fg='grey')

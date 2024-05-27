@@ -3,6 +3,7 @@
 #python -m pip install --upgrade pip
 #python -m pip install pytube
 #python -m pip install opencv-python
+#python -m pip install imageio
 
 #later if I want to add a webcam, might need to configure using the VideoCapture class within OpenCV
 
@@ -11,11 +12,16 @@ import cv2 as cv
 import tkinter.filedialog
 from PIL import Image as PILimg
 from PIL import ImageDraw
+from PIL import ImageFont
 
 from pytube import YouTube
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
+from tkinter import StringVar
+from tkinter import OptionMenu
+
+
 import array
 import numpy as np
 import imageio
@@ -30,7 +36,7 @@ def chooseColor():
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title ="Choose color") 
     userCustomColor = color_code[0] #do more splitting here
-    selectedColorButton.config(bg=color_code[1], text="  "+color_code[1]+"  ")
+    selectedColorButton.config(bg=color_code[1], text="  "+str(color_code[1])+"  ")
     return
 
 userVideoInput = ""
@@ -216,12 +222,12 @@ def main():
     jsoutput.write("ctx.clearRect(0, 0, canvas.width, canvas.height);\n")
     jsoutput.write("for(let i = 0; i < "+str(windowH)+"; i++){\n")
     jsoutput.write("    for(let j = 0; j < "+str(windowW)+"; j++){\n")
-    jsoutput.write("        ctx.font = \"20px Courier New, monospace\";\n")
+    jsoutput.write("        ctx.font = \"20px "+dropFont.get()+", monospace\";\n")
     jsoutput.write("        ctx.fillStyle = \"rgb(\"+String(colorValues[frameIndex][i][j][2])+\",\"+String(colorValues[frameIndex][i][j][1])+\",\"+String(colorValues[frameIndex][i][j][0])+\")\";\n")
     jsoutput.write("        ctx.fillText(asciiValues[frameIndex][i][j],j*16,i*16); // might need to change starting location here\n") 
     jsoutput.write("    }\n")
     jsoutput.write("}\n")
-    jsoutput.write("if(frameIndex == "+str(int(cap.get(cv.CAP_PROP_FRAME_COUNT)-1))+"){\n")
+    jsoutput.write("if(frameIndex == "+str(endSeconds*int(fps))+"){\n")
     jsoutput.write("    frameIndex = 0;\n")
     jsoutput.write("}\n")
     jsoutput.write("}, 2);\n")
@@ -244,7 +250,9 @@ def main():
             for i in range(len(asciiFrames[frame_index])):
                 for j in range(len(asciiFrames[frame_index][i])):
                     color = tuple((colorFrames[frame_index][i][j][2], colorFrames[frame_index][i][j][1], colorFrames[frame_index][i][j][0]))
-                    gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color) #adjust this based on gif output
+                    
+                    font = ImageFont.truetype("./Fonts/" + str(dropFont.get()))
+                    gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color, font = font) #adjust this based on gif output
 
             # Append frame to GIF
             gif.append_data(np.array(gifCanvas))
@@ -259,7 +267,7 @@ def main():
 #do GUI stuff after color
 root = Tk()
 root.title("Javascript Ascii Animation Converter")
-root.geometry("600x200")
+root.geometry("495x200")
 root.resizable(False, False)
 frm = ttk.Frame(root, padding=2.5)
 frm.grid()
@@ -304,17 +312,31 @@ sizeLabel = Label(frm, text="Size Factor")
 sizeLabel.grid(column=2, row=6, sticky="w")
 
 
-fontLabel = Label(frm, text="Custom Font")
+fontVariable = StringVar(frm)
+fontVariable.set("Arial.ttf")
+dropFont = ttk.Combobox(frm, width = 7, textvariable = fontVariable)
+dropFont['values'] = os.listdir("./Fonts/") # get custom fonts
+#dropFont.config(width = 4,anchor='w')
+#
+
+dropFont.grid(column=1,row=5,sticky="w")
+
+
+
+fontLabel = Label(frm, text="Font")
 fontLabel.grid(column=1, row=6, sticky="w")
+
+
+
 
 #use colorFilterEnabled.get() to see if checked or unchecked
 colorFilterEnabled = BooleanVar()
-colorFilterCheckbox = Checkbutton(frm, text="Color Filter", variable=colorFilterEnabled)
-colorFilterCheckbox.grid(column=1, row=7)
+colorFilterCheckbox = Checkbutton(frm, text="RGB Filter", variable=colorFilterEnabled)
+colorFilterCheckbox.grid(column=1, row=7, sticky="w")
 
 gifEnabled = BooleanVar()
-gifCheckbox = Checkbutton(frm, text=".gif Output", variable=gifEnabled)
-gifCheckbox.grid(column=2, row=7)
+gifCheckbox = Checkbutton(frm, text=".gif", variable=gifEnabled)
+gifCheckbox.grid(column=2, row=7, sticky="w")
 
 ttk.Button(frm, text="Convert", command=main).grid(column=2, row=1,sticky="w")
 

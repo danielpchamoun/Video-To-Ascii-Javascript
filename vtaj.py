@@ -126,21 +126,28 @@ def tagEntryUnfocus(event):
     if tagEntry.get() == '':
         cssText.config(state='normal')
         htmlText.config(state='normal')
+        jsText.config(state='normal')
         tagEntry.insert(0, '1')
         htmlText.delete(0, END)
         htmlText.insert(0, f"<canvas id=\"asciianimation"+tagEntry.get()+"\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
         cssText.delete(0, END)
         cssText.insert(0, f".asciianimation"+tagEntry.get()+"{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
+        jsText.delete(0,END)
+        jsText.insert(0,f"Copy "+".asciianimation"+tagEntry.get()+".js output to desired path")
         tagEntry.config(fg='grey')
         htmlText.config(state='readonly')
         cssText.config(state='readonly')
     else:
         htmlText.config(state='normal')
         cssText.config(state='normal')
+        jsText.config(state='normal')
         htmlText.delete(0, END)
-        htmlText.insert(0, f"<canvas id=\"asciianimation{tagEntry.get()}\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
+        htmlText.insert(0, f"<canvas id=\"asciianimation"+tagEntry.get()+"\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
         cssText.delete(0, END)
-        cssText.insert(0, f".asciianimation{tagEntry.get()}{{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}}")
+        cssText.insert(0, f".asciianimation"+tagEntry.get()+"{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
+        jsText.delete(0,END)
+        jsText.insert(0,f"Copy "+".asciianimation"+tagEntry.get()+".js output to desired path")
+
         htmlText.config(state='readonly')
         cssText.config(state='readonly')
 
@@ -244,31 +251,33 @@ def main():
 
     jsoutput = open("asciianimation"+tagEntry.get()+".js","a")
 
-    jsoutput.write("colorValues ="+str(colorFrames)+";\n")
-    jsoutput.write("asciiValues ="+str(asciiFrames)+";\n")
-    jsoutput.write("const canvas = document.getElementById(\"asciianimation"+ tagEntry.get() +"\");\n")
-    jsoutput.write("const ctx = canvas.getContext(\"2d\");\n")
-    jsoutput.write("canvas.width = asciiValues[0][0].length*8;\n")
-    jsoutput.write("canvas.height = asciiValues[0].length*8;\n")
-    jsoutput.write("var frameIndex = 0;\n")
+    jsoutput.write("colorValues"+ tagEntry.get() +" ="+str(colorFrames)+";\n")
+    jsoutput.write("asciiValues"+ tagEntry.get() +" ="+str(asciiFrames)+";\n")
+    jsoutput.write("const canvas"+ tagEntry.get() +" = document.getElementById(\"asciianimation"+ tagEntry.get() +"\");\n")
+    jsoutput.write("const ctx"+ tagEntry.get() +" = canvas"+ tagEntry.get() +".getContext(\"2d\");\n")
+    jsoutput.write("canvas"+ tagEntry.get() +".width = asciiValues"+ tagEntry.get() +"[0][0].length*8;\n")
+    jsoutput.write("canvas"+ tagEntry.get() +".height = asciiValues"+ tagEntry.get() +"[0].length*8;\n")
+    jsoutput.write("var frameIndex"+ tagEntry.get() +" = 0;\n")
     jsoutput.write("var interval = window.setInterval(function(){\n")
-    jsoutput.write("frameIndex += 1;\n")
-    jsoutput.write("ctx.clearRect(0, 0, canvas.width, canvas.height);\n")
+    jsoutput.write("frameIndex"+ tagEntry.get() +" += 1;\n")
+    jsoutput.write("ctx"+ tagEntry.get() +".clearRect(0, 0, canvas"+ tagEntry.get() +".width, canvas"+ tagEntry.get() +".height);\n")
     jsoutput.write("for(let i = 0; i < "+str(windowH)+"; i++){\n")
     jsoutput.write("    for(let j = 0; j < "+str(windowW)+"; j++){\n")
-    jsoutput.write("        ctx.font = \"12px "+dropFont.get()[:-4]+", monospace\";\n")
-    jsoutput.write("        ctx.fillStyle = \"rgb(\"+String(colorValues[frameIndex][i][j][2])+\",\"+String(colorValues[frameIndex][i][j][1])+\",\"+String(colorValues[frameIndex][i][j][0])+\")\";\n")
-    jsoutput.write("        ctx.fillText(asciiValues[frameIndex][i][j],j*8,i*8); // might need to change starting location here\n") 
+    jsoutput.write("        ctx"+ tagEntry.get() +".font = \"12px "+dropFont.get()[:-4]+", monospace\";\n")
+    jsoutput.write("        ctx"+ tagEntry.get() +".fillStyle = \"rgb(\"+String(colorValues"+ tagEntry.get() +"[frameIndex"+ tagEntry.get() +"][i][j][2])+\",\"+String(colorValues"+ tagEntry.get() +"[frameIndex"+ tagEntry.get() +"][i][j][1])+\",\"+String(colorValues"+ tagEntry.get() +"[frameIndex"+ tagEntry.get() +"][i][j][0])+\")\";\n")
+    jsoutput.write("        ctx"+ tagEntry.get() +".fillText(asciiValues"+ tagEntry.get() +"[frameIndex"+ tagEntry.get() +"][i][j],j*8,i*8); // might need to change starting location here\n") 
     jsoutput.write("    }\n")
     jsoutput.write("}\n")
-    jsoutput.write("if(frameIndex == "+str(endSeconds*int(fps))+"){\n")
-    jsoutput.write("    frameIndex = 0;\n")
+    jsoutput.write("if(frameIndex"+ tagEntry.get() +" == "+str(endSeconds*int(fps))+"){\n")
+    jsoutput.write("    frameIndex"+ tagEntry.get() +" = 0;\n")
     jsoutput.write("}\n")
     jsoutput.write("}, " + str(int((1000/fps)/ float(dropSpeed.get()))) + " );\n")
     jsoutput.close()
     cap.release()
     cv.destroyAllWindows()
     
+
+
     if gifEnabled.get():
 
         
@@ -301,8 +310,9 @@ def main():
 
 #do GUI stuff after color
 root = Tk()
+root.iconbitmap("favicon.ico")
 root.title("Javascript Ascii Animation Converter")
-root.geometry("475x205")
+root.geometry("460x205")
 root.resizable(False, False)
 
 frm = ttk.Frame(root, padding=2.5)
@@ -313,7 +323,7 @@ ttk.Button(frm, text="Browse", command=chooseFile, width=7).grid(column=1, row=1
 selectedFileEntry = ttk.Entry(frm, width=55)
 selectedFileEntry.grid(column=0, row=1)
 
-startEntry = Entry(frm, width=10,fg='grey')
+startEntry = Entry(frm, width=7,fg='grey')
 startEntry.insert(0, '00:00:00')
 startEntry.bind('<FocusIn>', startEntryFocus)
 startEntry.bind('<FocusOut>', startEntryUnfocus)
@@ -323,26 +333,26 @@ startEntry.grid(column=1, row=3,sticky="w")
 startLabel = Label(frm, text="Start")
 startLabel.grid(column=1, row=2 ,sticky="w")
 
-endEntry = Entry(frm, width=10,fg='grey')
+endEntry = Entry(frm, width=7,fg='grey')
 endEntry.insert(0, '00:00:00')
 endEntry.bind('<FocusIn>', endEntryFocus)
 endEntry.bind('<FocusOut>', endEntryUnfocus)
-endEntry.grid(column=2, row=3, sticky="w")
+endEntry.grid(column=2, row=3, sticky="e")
 
 endLabel = Label(frm, text="End")
-endLabel.grid(column=2, row=2, sticky="w")
+endLabel.grid(column=2, row=2, sticky="e")
 
 selectedColorButton = Button(frm, text="Color\nFilter", command=chooseColor, bg = "#ffffff", width=4)
 selectedColorButton.grid(column=2, row=8, sticky="e",padx=(28,0), pady=(4,0))
 
-tagEntry = Entry(frm, width=10,fg='grey')
+tagEntry = Entry(frm, width=7,fg='grey')
 tagEntry.insert(0, '1')
 tagEntry.bind('<FocusIn>', tagEntryFocus)
 tagEntry.bind('<FocusOut>', tagEntryUnfocus)
-tagEntry.grid(column=2, row=7,sticky="w")
+tagEntry.grid(column=2, row=7,sticky="e")
 
 tagLabel = Label(frm, text="Tag/ID")
-tagLabel.grid(column=2, row=6, sticky="w")
+tagLabel.grid(column=2, row=6, sticky="e")
 
 
 
@@ -353,23 +363,23 @@ speedLabel = Label(frm, text="Speed")
 speedLabel.grid(column=1, row=6, sticky="w")
 speed = StringVar(frm)
 speed.set("1")
-dropSpeed = ttk.Combobox(frm, width = 2, textvariable = speed)
+dropSpeed = ttk.Combobox(frm, width = 4, textvariable = speed)
 dropSpeed['values'] = [0.5,1,2]
 dropSpeed.grid(column=1,row=7,sticky="w")
 
-sizeEntry = Entry(frm, width=10,fg='grey')
+sizeEntry = Entry(frm, width=7,fg='grey')
 sizeEntry.insert(0, '0.08')
 sizeEntry.bind('<FocusIn>', sizeEntryFocus)
 sizeEntry.bind('<FocusOut>', sizeEntryUnfocus)
-sizeEntry.grid(column=2, row=5,sticky="w")
+sizeEntry.grid(column=2, row=5,sticky="e")
 
-sizeLabel = Label(frm, text="Size Factor")
-sizeLabel.grid(column=2, row=4, sticky="w")
+sizeLabel = Label(frm, text="Scale")
+sizeLabel.grid(column=2, row=4, sticky="e")
 
 
 fontVariable = StringVar(frm)
 fontVariable.set("Arial.ttf")
-dropFont = ttk.Combobox(frm, width = 7, textvariable = fontVariable)
+dropFont = ttk.Combobox(frm, width = 4, textvariable = fontVariable)
 dropFont['values'] = os.listdir("./Fonts/") # get custom fonts
 dropFont.grid(column=1,row=5,sticky="w")
 
@@ -417,13 +427,24 @@ htmlText.config(state='readonly')
 
 cssLabel = Label(frm, text="CSS")
 cssLabel.grid(column=0, row=4 ,sticky="w")
+
 cssText = ttk.Entry(frm, width=50)
 cssText.grid(column=0, row= 5)
 cssText.config(state='normal')
-cssText.insert(0,".asciianimation"+ tagEntry.get() +"{\n    margin-right: auto;\n    margin-left: auto;\n   align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
+cssText.insert(0,".asciianimation"+ tagEntry.get() +"{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
 cssText.config(state='readonly')
 
+jsLabel = Label(frm, text="JS")
+jsLabel.grid(column=0, row=6 ,sticky="w")
 
+jsText = ttk.Entry(frm, width=50)
+jsText.config(state='normal')
+jsText.insert(0,"Copy "+".asciianimation"+tagEntry.get()+".js output to desired path")
+jsText.config(state='readonly')
+jsText.grid(column=0, row=7)
+
+progressbar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determinate', maximum=100)
+progressbar.grid(row=8, column=0)
 
 
 

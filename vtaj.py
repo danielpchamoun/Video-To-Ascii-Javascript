@@ -157,7 +157,6 @@ def tagEntryUnfocus(event):
 
 def main():
     userVideoInput = selectedFileEntry.get()
-    print(userVideoInput)
     if userVideoInput.startswith("https://"):
         print("Downloading video from: " + userVideoInput)
         try:
@@ -304,7 +303,9 @@ def main():
 
         gif.close()
 
-    sys.exit(1)
+
+    #finished converting .gif and javascript
+
 
 
 
@@ -443,10 +444,13 @@ jsText.insert(0,"Copy "+".asciianimation"+tagEntry.get()+".js output to desired 
 jsText.config(state='readonly')
 jsText.grid(column=0, row=7)
 
-progressbar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determinate', maximum=100)
-progressbar.grid(row=8, column=0)
 
 
+progressBar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determinate', maximum=100)
+progressBar.grid(row=8, column=0, sticky=E+W+N+S, padx=5, pady=5)
+
+progressLabel = Label(frm, text="Progress: 0%")
+progressLabel.place(in_=progressBar, relx=0.5, rely=0.5, anchor=CENTER)
 
 root.mainloop()
 

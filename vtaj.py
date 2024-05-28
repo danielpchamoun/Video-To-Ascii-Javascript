@@ -36,7 +36,7 @@ def chooseColor():
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title ="Choose color") 
     userCustomColor = color_code[0] #do more splitting here
-    selectedColorButton.config(bg=color_code[1], text="  "+str(color_code[1])+"  ")
+    selectedColorButton.config(bg=color_code[1]) #, text=str(color_code[1][1:])
     return
 
 userVideoInput = ""
@@ -115,6 +115,48 @@ def sizeEntryUnfocus(event):
         sizeEntry.config(fg='grey')
 
 
+def tagEntryFocus(event):
+    if tagEntry.get() == '1':
+        tagEntry.delete(0, END)
+        tagEntry.insert(0, '')
+        tagEntry.config(fg='black')
+
+def tagEntryUnfocus(event):
+    if tagEntry.get() == '':
+        cssText.config(state='normal')
+        htmlText.config(state='normal')
+        tagEntry.insert(0, '1')
+        htmlText.delete(0, END)
+        htmlText.insert(0, f"<canvas id=\"asciianimation"+tagEntry.get()+"\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
+        cssText.delete(0, END)
+        cssText.insert(0, f".asciianimation"+tagEntry.get()+"{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
+        tagEntry.config(fg='grey')
+        htmlText.config(state='readonly')
+        cssText.config(state='readonly')
+    else:
+        htmlText.config(state='normal')
+        cssText.config(state='normal')
+        htmlText.delete(0, END)
+        htmlText.insert(0, f"<canvas id=\"asciianimation{tagEntry.get()}\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
+        cssText.delete(0, END)
+        cssText.insert(0, f".asciianimation{tagEntry.get()}{{\n    margin-right: auto;\n    margin-left: auto;\n    align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}}")
+        htmlText.config(state='readonly')
+        cssText.config(state='readonly')
+
+
+def speedEntryFocus(event):
+    if speedEntry.get() == '1.00':
+        speedEntry.delete(0, END)
+        speedEntry.insert(0, '')
+        speedEntry.config(fg='black')
+
+def speedEntryUnfocus(event):
+    if speedEntry.get() == '':
+        speedEntry.insert(0, '1.00')
+        speedEntry.config(fg='grey')
+
+
+
 def main():
 
     userVideoInput = selectedFileEntry.get()
@@ -148,7 +190,7 @@ def main():
     print(factorX)
     print(factorY)
 
-    jsoutput = open("animation.js","w")  #clearing javascript file
+    jsoutput = open("asciianimation"+tagEntry.get()+".js","w")  #clearing javascript file
     jsoutput.write("")
     jsoutput.close()
     count = 0
@@ -210,27 +252,29 @@ def main():
         if cv.waitKey(1) == ord('q'):
             break
 
-    jsoutput = open("animation.js","a")
+    jsoutput = open("asciianimation"+tagEntry.get()+".js","a")
 
     jsoutput.write("colorValues ="+str(colorFrames)+";\n")
     jsoutput.write("asciiValues ="+str(asciiFrames)+";\n")
-    jsoutput.write("const canvas = document.getElementById(\"asciianimation\");\n")
+    jsoutput.write("const canvas = document.getElementById(\"asciianimation"+ tagEntry.get() +"\");\n")
     jsoutput.write("const ctx = canvas.getContext(\"2d\");\n")
+    jsoutput.write("canvas.width = asciiValues[0][0].length*8;\n")
+    jsoutput.write("canvas.height = asciiValues[0].length*8;\n")
     jsoutput.write("var frameIndex = 0;\n")
     jsoutput.write("var interval = window.setInterval(function(){\n")
     jsoutput.write("frameIndex += 1;\n")
     jsoutput.write("ctx.clearRect(0, 0, canvas.width, canvas.height);\n")
     jsoutput.write("for(let i = 0; i < "+str(windowH)+"; i++){\n")
     jsoutput.write("    for(let j = 0; j < "+str(windowW)+"; j++){\n")
-    jsoutput.write("        ctx.font = \"20px "+dropFont.get()+", monospace\";\n")
+    jsoutput.write("        ctx.font = \"12px "+dropFont.get()[:-4]+", monospace\";\n")
     jsoutput.write("        ctx.fillStyle = \"rgb(\"+String(colorValues[frameIndex][i][j][2])+\",\"+String(colorValues[frameIndex][i][j][1])+\",\"+String(colorValues[frameIndex][i][j][0])+\")\";\n")
-    jsoutput.write("        ctx.fillText(asciiValues[frameIndex][i][j],j*16,i*16); // might need to change starting location here\n") 
+    jsoutput.write("        ctx.fillText(asciiValues[frameIndex][i][j],j*8,i*8); // might need to change starting location here\n") 
     jsoutput.write("    }\n")
     jsoutput.write("}\n")
     jsoutput.write("if(frameIndex == "+str(endSeconds*int(fps))+"){\n")
     jsoutput.write("    frameIndex = 0;\n")
     jsoutput.write("}\n")
-    jsoutput.write("}, 2);\n")
+    jsoutput.write("}, " + str(int((1000/fps)/ float(speedEntry.get()))) + " );\n")
     jsoutput.close()
     cap.release()
     cv.destroyAllWindows()
@@ -239,7 +283,7 @@ def main():
     if gifEnabled.get():
 
         # Use Ascii data to output in .gif format
-        gif = imageio.get_writer("output.gif", fps=fps)
+        gif = imageio.get_writer("output.gif", fps=fps, loop=0)
 
         for frame_index in range(len(asciiFrames)):
 
@@ -267,13 +311,13 @@ def main():
 #do GUI stuff after color
 root = Tk()
 root.title("Javascript Ascii Animation Converter")
-root.geometry("495x200")
+root.geometry("475x205")
 root.resizable(False, False)
 frm = ttk.Frame(root, padding=2.5)
 frm.grid()
 
 
-ttk.Button(frm, text="Browse", command=chooseFile).grid(column=1, row=1, sticky="w")
+ttk.Button(frm, text="Browse", command=chooseFile, width=7).grid(column=1, row=1, sticky="w")
 selectedFileEntry = ttk.Entry(frm, width=55)
 selectedFileEntry.grid(column=0, row=1)
 
@@ -285,7 +329,7 @@ startEntry.grid(column=1, row=3,sticky="w")
 
 
 startLabel = Label(frm, text="Start")
-startLabel.grid(column=1, row=4 ,sticky="w")
+startLabel.grid(column=1, row=2 ,sticky="w")
 
 endEntry = Entry(frm, width=10,fg='grey')
 endEntry.insert(0, '00:00:00')
@@ -294,11 +338,28 @@ endEntry.bind('<FocusOut>', endEntryUnfocus)
 endEntry.grid(column=2, row=3, sticky="w")
 
 endLabel = Label(frm, text="End")
-endLabel.grid(column=2, row=4, sticky="w")
+endLabel.grid(column=2, row=2, sticky="w")
 
-selectedColorButton = Button(frm, text="  #ffffff  ", command=chooseColor, bg = "#ffffff")
-selectedColorButton.grid(column=1, row=8)
+selectedColorButton = Button(frm, text="Color\nFilter", command=chooseColor, bg = "#ffffff", width=4)
+selectedColorButton.grid(column=2, row=8, sticky="e",padx=(28,0), pady=(4,0))
 
+tagEntry = Entry(frm, width=10,fg='grey')
+tagEntry.insert(0, '1')
+tagEntry.bind('<FocusIn>', tagEntryFocus)
+tagEntry.bind('<FocusOut>', tagEntryUnfocus)
+tagEntry.grid(column=2, row=7,sticky="w")
+
+tagLabel = Label(frm, text="Tag/ID")
+tagLabel.grid(column=2, row=6, sticky="w")
+
+speedEntry = Entry(frm, width=10,fg='grey')
+speedEntry.insert(0, '1.00')
+speedEntry.bind('<FocusIn>', speedEntryFocus)
+speedEntry.bind('<FocusOut>', speedEntryUnfocus)
+speedEntry.grid(column=1, row=7,sticky="w")
+
+speedLabel = Label(frm, text="Speed")
+speedLabel.grid(column=1, row=6, sticky="w")
 
 
 
@@ -309,7 +370,7 @@ sizeEntry.bind('<FocusOut>', sizeEntryUnfocus)
 sizeEntry.grid(column=2, row=5,sticky="w")
 
 sizeLabel = Label(frm, text="Size Factor")
-sizeLabel.grid(column=2, row=6, sticky="w")
+sizeLabel.grid(column=2, row=4, sticky="w")
 
 
 fontVariable = StringVar(frm)
@@ -324,21 +385,22 @@ dropFont.grid(column=1,row=5,sticky="w")
 
 
 fontLabel = Label(frm, text="Font")
-fontLabel.grid(column=1, row=6, sticky="w")
+fontLabel.grid(column=1, row=4, sticky="w")
 
 
 
 
 #use colorFilterEnabled.get() to see if checked or unchecked
 colorFilterEnabled = BooleanVar()
-colorFilterCheckbox = Checkbutton(frm, text="RGB Filter", variable=colorFilterEnabled)
-colorFilterCheckbox.grid(column=1, row=7, sticky="w")
+colorFilterCheckbox = Checkbutton(frm, variable=colorFilterEnabled)
+colorFilterCheckbox.grid(column=2, row=8, sticky="w")
 
 gifEnabled = BooleanVar()
 gifCheckbox = Checkbutton(frm, text=".gif", variable=gifEnabled)
-gifCheckbox.grid(column=2, row=7, sticky="w")
+gifCheckbox.grid(column=1, row=8, sticky="w")
 
-ttk.Button(frm, text="Convert", command=main).grid(column=2, row=1,sticky="w")
+
+ttk.Button(frm, text="Convert", command=main,width=9).grid(column=2, row=1)
 
 
 
@@ -350,6 +412,27 @@ selectedFileEntry.insert(0, 'Enter file path or paste YouTube link here')
 selectedFileEntry.bind('<FocusIn>', selectedFileEntryFocus)
 selectedFileEntry.bind('<FocusOut>', selectedFileEntryUnfocus)
 selectedFileEntry.grid(column=0, row=1)
+
+htmlLabel = Label(frm, text="HTML")
+htmlLabel.grid(column=0, row=2 ,sticky="w")
+
+htmlText = ttk.Entry(frm, width=50)
+htmlText.grid(column=0, row=3)
+htmlText.config(state='normal')
+htmlText.insert(0,"<canvas id=\"asciianimation"+ tagEntry.get() +"\"></canvas>\n<script src=\"asciianimation"+tagEntry.get()+".js\"></script>")
+htmlText.config(state='readonly')
+
+cssLabel = Label(frm, text="CSS")
+cssLabel.grid(column=0, row=4 ,sticky="w")
+cssText = ttk.Entry(frm, width=50)
+cssText.grid(column=0, row= 5)
+cssText.config(state='normal')
+cssText.insert(0,".asciianimation"+ tagEntry.get() +"{\n    margin-right: auto;\n    margin-left: auto;\n   align-items: center;\n    padding-right: 0;\n    padding-left: 0;\n}")
+cssText.config(state='readonly')
+
+
+
+
 
 root.mainloop()
 

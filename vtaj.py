@@ -24,6 +24,7 @@ from tkinter import OptionMenu
 
 import array
 import numpy as np
+import math
 import imageio
 
 
@@ -144,21 +145,10 @@ def tagEntryUnfocus(event):
         cssText.config(state='readonly')
 
 
-def speedEntryFocus(event):
-    if speedEntry.get() == '1.00':
-        speedEntry.delete(0, END)
-        speedEntry.insert(0, '')
-        speedEntry.config(fg='black')
-
-def speedEntryUnfocus(event):
-    if speedEntry.get() == '':
-        speedEntry.insert(0, '1.00')
-        speedEntry.config(fg='grey')
 
 
 
 def main():
-
     userVideoInput = selectedFileEntry.get()
     print(userVideoInput)
     if userVideoInput.startswith("https://"):
@@ -274,33 +264,34 @@ def main():
     jsoutput.write("if(frameIndex == "+str(endSeconds*int(fps))+"){\n")
     jsoutput.write("    frameIndex = 0;\n")
     jsoutput.write("}\n")
-    jsoutput.write("}, " + str(int((1000/fps)/ float(speedEntry.get()))) + " );\n")
+    jsoutput.write("}, " + str(int((1000/fps)/ float(dropSpeed.get()))) + " );\n")
     jsoutput.close()
     cap.release()
     cv.destroyAllWindows()
     
-    
     if gifEnabled.get():
 
-        # Use Ascii data to output in .gif format
-        gif = imageio.get_writer("output.gif", fps=fps, loop=0)
-
+        
+        if float(dropSpeed.get()) == 0.5:
+            gif = imageio.get_writer("output.gif", fps=fps/2, loop=0)
+        else:
+            gif = imageio.get_writer("output.gif", fps=fps, loop=0)
         for frame_index in range(len(asciiFrames)):
+            if frame_index % math.ceil(float(dropSpeed.get())) == 0: 
+                canvas_width = len(asciiFrames[0][0]) * 10  # Width of ASCII frame characters
+                canvas_height = len(asciiFrames[0]) * 10   # Height of ASCII frame characters
+                gifCanvas = PILimg.new('RGB', (canvas_width, canvas_height), color='black')
+                gifAsciiColor = ImageDraw.Draw(gifCanvas)
+                for i in range(len(asciiFrames[frame_index])):
+                    for j in range(len(asciiFrames[frame_index][i])):
+                        color = tuple((colorFrames[frame_index][i][j][2], colorFrames[frame_index][i][j][1], colorFrames[frame_index][i][j][0]))
+                        
+                        font = ImageFont.truetype("./Fonts/" + str(dropFont.get()))
+                        gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color, font = font) #adjust this based on gif output
 
-            canvas_width = len(asciiFrames[0][0]) * 10  # Width of ASCII frame characters
-            canvas_height = len(asciiFrames[0]) * 10   # Height of ASCII frame characters
-            gifCanvas = PILimg.new('RGB', (canvas_width, canvas_height), color='black')
-            gifAsciiColor = ImageDraw.Draw(gifCanvas)
-            for i in range(len(asciiFrames[frame_index])):
-                for j in range(len(asciiFrames[frame_index][i])):
-                    color = tuple((colorFrames[frame_index][i][j][2], colorFrames[frame_index][i][j][1], colorFrames[frame_index][i][j][0]))
-                    
-                    font = ImageFont.truetype("./Fonts/" + str(dropFont.get()))
-                    gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color, font = font) #adjust this based on gif output
-
-            # Append frame to GIF
-            gif.append_data(np.array(gifCanvas))
-            print("Writing frame:", frame_index)
+                # Append frame to GIF
+                gif.append_data(np.array(gifCanvas))
+                print("Writing frame:", frame_index)
 
         gif.close()
 
@@ -313,6 +304,7 @@ root = Tk()
 root.title("Javascript Ascii Animation Converter")
 root.geometry("475x205")
 root.resizable(False, False)
+
 frm = ttk.Frame(root, padding=2.5)
 frm.grid()
 
@@ -352,16 +344,18 @@ tagEntry.grid(column=2, row=7,sticky="w")
 tagLabel = Label(frm, text="Tag/ID")
 tagLabel.grid(column=2, row=6, sticky="w")
 
-speedEntry = Entry(frm, width=10,fg='grey')
-speedEntry.insert(0, '1.00')
-speedEntry.bind('<FocusIn>', speedEntryFocus)
-speedEntry.bind('<FocusOut>', speedEntryUnfocus)
-speedEntry.grid(column=1, row=7,sticky="w")
+
+
+
+
 
 speedLabel = Label(frm, text="Speed")
 speedLabel.grid(column=1, row=6, sticky="w")
-
-
+speed = StringVar(frm)
+speed.set("1")
+dropSpeed = ttk.Combobox(frm, width = 2, textvariable = speed)
+dropSpeed['values'] = [0.5,1,2]
+dropSpeed.grid(column=1,row=7,sticky="w")
 
 sizeEntry = Entry(frm, width=10,fg='grey')
 sizeEntry.insert(0, '0.08')
@@ -377,10 +371,9 @@ fontVariable = StringVar(frm)
 fontVariable.set("Arial.ttf")
 dropFont = ttk.Combobox(frm, width = 7, textvariable = fontVariable)
 dropFont['values'] = os.listdir("./Fonts/") # get custom fonts
-#dropFont.config(width = 4,anchor='w')
-#
-
 dropFont.grid(column=1,row=5,sticky="w")
+
+
 
 
 

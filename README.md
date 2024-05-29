@@ -1,4 +1,6 @@
-# Video to Ascii Javascript
+# Video to Ascii JavaScript
+
+To use, add your YouTube link at the top of the page, select if you want .gif output or any of the other features listed below, and hit "Convert". An example of this code being deployed using JavaScript can be found at [my website](https://danielchamoun.tech/).
 
 # Downloads
 
@@ -12,6 +14,10 @@ Video downloads are available from YouTube through the python library pytube, al
 Alternatively, use a local .mp4 file not from YouTube.
   
 ![image](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/10055dd8-fd0f-41d2-923b-15e7f224d039)
+
+To enable .gif output, ensure that the .gif checkbox is clicked before clicking "Convert" to start the ASCII conversion process.
+
+
   
 ### HTML / CSS / JavaScript Embedding
  

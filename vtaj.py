@@ -5,32 +5,33 @@
 #python -m pip install opencv-python
 #python -m pip install imageio
 
-#later if I want to add a webcam, might need to configure using the VideoCapture class within OpenCV
-
 import os, sys
 import cv2 as cv
 import tkinter.filedialog
 from PIL import Image as PILimg
 from PIL import ImageDraw
 from PIL import ImageFont
-
 from pytube import YouTube
 from tkinter import *
 from tkinter import ttk
 from tkinter import colorchooser
 from tkinter import StringVar
 from tkinter import OptionMenu
-
-
 import array
 import numpy as np
 import math
 import imageio
+import threading
 
 
+def startThread():
+    threading.Thread(target=main).start()
 
-# Function that will be invoked when the
-# button will be clicked in the main window
+
+def updateProgress(value):
+    progressBar['value'] = value
+    progressLabel.config(text="Progress: "+str(value)+"%")
+
 userCustomColor= (0,0,0)
 def chooseColor():
     global userCustomColor
@@ -156,35 +157,33 @@ def tagEntryUnfocus(event):
 
 
 def main():
+    updateProgress(0)
     userVideoInput = selectedFileEntry.get()
     if userVideoInput.startswith("https://"):
-        print("Downloading video from: " + userVideoInput)
+        #print("Downloading video from: " + userVideoInput)
         try:
             yt = YouTube(userVideoInput)
             mp4 = yt.streams.get_highest_resolution()
             mp4.download(filename="video.mp4")
             inputfile = "video.mp4"
-            print("Video downloaded successfully.")
+            #print("Video downloaded successfully.")
         except Exception as e:
-            print("Error downloading video:", e)
+            #print("Error downloading video:", e)
             return
     else:
         inputfile = userVideoInput
-    print(inputfile)
+    #print(inputfile)
     cap = cv.VideoCapture(inputfile)
     if not cap.isOpened():
-        print("Error: Couldn't open video file.")
+        #print("Error: Couldn't open video file.")
         return
-
+    updateProgress(10)
     fps = cap.get(cv.CAP_PROP_FPS)
 
     # 70 levels of gray
     ascii_ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
     factorX = float(sizeEntry.get()) #change to user inputs 
     factorY = float(sizeEntry.get()) #change to user inputs 
-
-    print(factorX)
-    print(factorY)
 
     jsoutput = open("asciianimation"+tagEntry.get()+".js","w")  #clearing javascript file
     jsoutput.write("")
@@ -208,11 +207,13 @@ def main():
         endSeconds = int(endTime[0:2]) * 3600 + int(endTime[3:5]) * 60 + int(endTime[6:8])
     else:
         endSeconds = int(cap.get(cv.CAP_PROP_FRAME_COUNT) / fps)
-
+    
+    updateProgress(20)
+    
     while cap.isOpened():
+        
         ret, frame = cap.read() #gets next frame
         if not ret or count / fps >= endSeconds:
-            print("Done.")
             break
         
         if count / fps >= startSeconds:
@@ -240,16 +241,18 @@ def main():
             asciiFrames.append(asciiValues)
             colorFrames.append(colorValues)
 
-            #update with new time later
-            print("Converting:" + str(min(100, round((count / (fps * endSeconds)) * 100, 2)))+"%")
+            updateProgress(int(30 + 20*(count/fps)/(endSeconds-startSeconds)))
 
         count+=1
-        cv.imshow('resized', frame) #preview
+        #cv.imshow('resized', frame) #preview
         if cv.waitKey(1) == ord('q'):
             break
 
-    jsoutput = open("asciianimation"+tagEntry.get()+".js","a")
+    if not gifEnabled.get():
+        updateProgress(80)
 
+
+    jsoutput = open("asciianimation"+tagEntry.get()+".js","a")
     jsoutput.write("colorValues"+ tagEntry.get() +" ="+str(colorFrames)+";\n")
     jsoutput.write("asciiValues"+ tagEntry.get() +" ="+str(asciiFrames)+";\n")
     jsoutput.write("const canvas"+ tagEntry.get() +" = document.getElementById(\"asciianimation"+ tagEntry.get() +"\");\n")
@@ -274,7 +277,6 @@ def main():
     jsoutput.close()
     cap.release()
     cv.destroyAllWindows()
-    
 
 
     if gifEnabled.get():
@@ -298,15 +300,14 @@ def main():
                         gifAsciiColor.text((j * 10, i * 10), asciiFrames[frame_index][i][j], fill=color, font = font) #adjust this based on gif output
 
                 # Append frame to GIF
-                gif.append_data(np.array(gifCanvas))
-                print("Writing frame:", frame_index)
+                gif.append_data(np.array(gifCanvas))            
+            updateProgress(50+int((frame_index/len(asciiFrames)) * 50))
 
         gif.close()
 
 
     #finished converting .gif and javascript
-
-
+    updateProgress(100)
 
 
 #do GUI stuff after color
@@ -355,11 +356,6 @@ tagEntry.grid(column=2, row=7,sticky="e")
 tagLabel = Label(frm, text="Tag/ID")
 tagLabel.grid(column=2, row=6, sticky="e")
 
-
-
-
-
-
 speedLabel = Label(frm, text="Speed")
 speedLabel.grid(column=1, row=6, sticky="w")
 speed = StringVar(frm)
@@ -384,15 +380,8 @@ dropFont = ttk.Combobox(frm, width = 4, textvariable = fontVariable)
 dropFont['values'] = os.listdir("./Fonts/") # get custom fonts
 dropFont.grid(column=1,row=5,sticky="w")
 
-
-
-
-
 fontLabel = Label(frm, text="Font")
 fontLabel.grid(column=1, row=4, sticky="w")
-
-
-
 
 #use colorFilterEnabled.get() to see if checked or unchecked
 colorFilterEnabled = BooleanVar()
@@ -404,11 +393,7 @@ gifCheckbox = Checkbutton(frm, text=".gif", variable=gifEnabled)
 gifCheckbox.grid(column=1, row=8, sticky="w")
 
 
-ttk.Button(frm, text="Convert", command=main,width=9).grid(column=2, row=1)
-
-
-
-
+ttk.Button(frm, text="Convert", command=startThread,width=9).grid(column=2, row=1)
 
 
 selectedFileEntry = Entry(frm, width=55, fg='grey')
@@ -446,10 +431,12 @@ jsText.grid(column=0, row=7)
 
 
 
-progressBar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determinate', maximum=100)
+
+progressBar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determinate')
+ 
 progressBar.grid(row=8, column=0, sticky=E+W+N+S, padx=5, pady=5)
 
-progressLabel = Label(frm, text="Progress: 0%")
+progressLabel = Label(frm, text="")
 progressLabel.place(in_=progressBar, relx=0.5, rely=0.5, anchor=CENTER)
 
 root.mainloop()

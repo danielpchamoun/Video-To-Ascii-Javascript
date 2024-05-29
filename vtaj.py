@@ -436,7 +436,7 @@ progressBar = ttk.Progressbar(frm, orient='horizontal', length=200, mode='determ
  
 progressBar.grid(row=8, column=0, sticky=E+W+N+S, padx=5, pady=5)
 
-progressLabel = Label(frm, text="")
+progressLabel = Label(frm, text="Progress: 0%")
 progressLabel.place(in_=progressBar, relx=0.5, rely=0.5, anchor=CENTER)
 
 root.mainloop()

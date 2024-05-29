@@ -1,1 +1,1 @@
-wip
+For custom fonts, add the .ttx or .otf file into the fonts folder for easy selection.

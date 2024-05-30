@@ -270,7 +270,7 @@ def main():
     jsoutput.write("        ctx"+ tagEntry.get() +".fillText(asciiValues"+ tagEntry.get() +"[frameIndex"+ tagEntry.get() +"][i][j],j*8,i*8); // might need to change starting location here\n") 
     jsoutput.write("    }\n")
     jsoutput.write("}\n")
-    jsoutput.write("if(frameIndex"+ tagEntry.get() +" == "+str(endSeconds*int(fps))+"){\n")
+    jsoutput.write("if(frameIndex"+ tagEntry.get() +" == "+str((endSeconds*int(fps))-1)+"){\n")
     jsoutput.write("    frameIndex"+ tagEntry.get() +" = 0;\n")
     jsoutput.write("}\n")
     jsoutput.write("}, " + str(int((1000/fps)/ float(dropSpeed.get()))) + " );\n")

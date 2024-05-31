@@ -4,7 +4,7 @@ To use, add your YouTube link at the top of the page, select if you want .gif ou
 
 # Downloads
 
-[release](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/releases/tag/v1.0.0_vtaj/v1.0.0_vtaj.zip)
+[latest](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/releases)
 
 # Features
 

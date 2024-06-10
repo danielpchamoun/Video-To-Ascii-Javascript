@@ -39,6 +39,15 @@ Finally to change the speed, select one of the three options listed in this drop
 
 ![image](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/879b6c24-3b48-4d67-a3c6-298991806b15)
 
+0.5x Speed
+![0 5](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/6ed4fb61-5b1d-49e2-acd8-17cc14a509da)
+
+1x Speed
+![1](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/8e679615-9da5-4c00-bfaf-bdf957781f76)
+
+2x Speed
+![2](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/4f7bc905-dc0e-4634-b53c-4c87e54e047a)
+
 
 ### Color Filter
 ![image](https://github.com/danielpchamoun/Video-To-Ascii-Javascript/assets/70672059/a2cf6285-1715-4e68-bfab-657cac6cb8eb)
